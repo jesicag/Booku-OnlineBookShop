@@ -1,0 +1,59 @@
+<center>
+        <h1><?= Html::encode($this->title) ?></h1>
+        <?=Html::a('Back to home',['/site/index/'],['class' => 'btn btn-success']) ?><hr>
+    </center><br>
+
+    <?= GridView::widget([
+        'dataProvider' => $dataProvider,
+        //'filterModel' => $searchModel,
+        'columns' => [
+            ['class' => 'yii\grid\SerialColumn'],
+
+            [
+                'attribute' => 'Title of The Book',
+                'value' => function($model){
+                    $stock = Yii::$app->db->createCommand('SELECT stock_id FROM stock where book_id='.$model->stock_id)->queryScalar();
+
+                    return Yii::$app->db->createCommand('SELECT title FROM details where id='. $stock)->queryScalar();
+                }
+            ],
+            'buy_date',
+            'total',
+            'cost',
+            [
+                'attribute' => 'Status',
+                'format' => 'raw',
+                'value' => function($model){
+                    $book_stock = Yii::$app->db->createCommand('SELECT book_stock from stock where book_id='.$model->stock_id)->queryScalar();
+                    if($book_stock > 1){
+                        return "<div><center><span class='label label-info'>Request</span></center></div>";
+                    }else{
+                        return "<div><center><span class='label label-success'>Accepted</span></center></div>";
+                    }
+                }
+            ],
+            [
+                'attribute' => 'Action',
+                'format' => 'raw',
+                'value' => function ($model) {
+                        return '<div>' .'<center>'.Html::a('Cancel', ['cart/cancel', 'id' => $model->id, 'stock' => $model->stock_id], ['class' => 'btn btn-danger','data' => ['confirm' => 'Are you sure you want to cancel this request?','method' => 'post',],]) .'</center>'.'</div>';
+                    // } else{
+                    //     return "<div ><strong><center>-</center></strong></div>";
+                    // }
+                },
+            ],
+        ],
+    ]); ?>
+    <div class="container">
+        <div class="col-sm-8"></div>
+        <div class="col-sm-4">
+            <h5><strong>Total : Rp
+            <?php
+                    $total = Yii::$app->db->createCommand('SELECT sum(cost) FROM cart');
+                    $sum = $total->queryScalar();
+                    echo $sum;
+            ?>
+            </strong></h5>
+            <button class="btn btn-info">Pay</button>
+            </div>
+    </div>
